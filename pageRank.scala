@@ -11,8 +11,8 @@ val aggregate_follows = follows.groupByKey();
 //follows_detail.cache();
 
 val all_id = distinctLine.flatMap(line => line.split(" ")).distinct();
-all_id.cache();
-val id_count = all_id.count();
+//all_id.cache();
+val id_count = 2546953.0;
 //val id_array = all_id.collect();
 var rank = all_id.map(id => (id, 1.0));
 
@@ -46,11 +46,12 @@ while(loop<10){
               }
         rank.count();
         val dangle_val = dangle_contrib.value/id_count;
-        val extra_contrib = all_id.map(id => (id, dangle_val))
+        val extra_contrib = all_info.keys.map(id => (id, dangle_val))
         rank = rank.union(extra_contrib)
         rank = rank.reduceByKey(_ + _).map( line => (line._1, 0.15 + 0.85*line._2));
-	      all_info = rank.leftOuterJoin(aggregate_follows);
+	all_info = rank.leftOuterJoin(aggregate_follows);
         loop = loop + 1;
 }
-rank.saveAsTextFile("s3n://15619pp42/task3_result")
+val output = rank.map(line => line._1 + '\t' + line._2);
+output.saveAsTextFile("s3n://15619pp42/task3_result")
 //rank.saveAsTextFile("hdfs:///output2/")
